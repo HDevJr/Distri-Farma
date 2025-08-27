@@ -1,1 +1,50 @@
-# 👋 Olá, eu sou o F Heráclito Junior 💻 Desenvolvedor apaixonado por tecnologia e sempre em busca de novos desafios. 🚀 Focado em **Python | Django | Django REST Framework | Frontend com HTML, CSS, Bootstrap** 📚 Sou Formado em Análise e Desenvolvimento de Sistemas --- ## 🔧 Tecnologias & Ferramentas <div align="center"> ![Python](https://img.shields.io/badge/-Python-333?style=for-the-badge&logo=python) ![Django REST](https://img.shields.io/badge/-Django%20REST-ff1709?style=for-the-badge&logo=django&logoColor=white) ![Django](https://img.shields.io/badge/-Django-092E20?style=for-the-badge&logo=django) ![MySQL](https://img.shields.io/badge/-MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white) ![HTML5](https://img.shields.io/badge/-HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white) ![CSS3](https://img.shields.io/badge/-CSS3-1572B6?style=for-the-badge&logo=css3) ![Bootstrap](https://img.shields.io/badge/-Bootstrap-563D7C?style=for-the-badge&logo=bootstrap) ![Git](https://img.shields.io/badge/-Git-F05032?style=for-the-badge&logo=git&logoColor=white) </div> --- ## 📊 GitHub Stats <div align="center"> ![GitHub Stats](https://github-readme-stats.vercel.app/api?username=HDevJr&show_icons=true&theme=tokyonight) ![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=HDevJr&layout=compact&theme=tokyonight) </div> --- ## 📌 Projetos em Destaque - 🔹 [**Distri-Farma**](https://github.com/HDevJr/Distri-Farma) → Sistema de controle de estoque e vendas com Django REST Framework - 🔹 [**Automação Excel + API**](#) → Script em Python para consultas automáticas de CNPJ e atualização de planilhas - 🔹 [**Gerador de Assinaturas**](#) → Automação com PIL para criação de assinaturas de e-mail personalizadas --- ## 🌐 Contato 📫 **Email:** hdevjr@gmail.com <br> **Linkedin:** https://www.linkedin.com/in/her%C3%A1clito-pantoja-jr-7235a4209/ ---
+# Sistema de Controle de Estoque DistriFarma
+
+**Descrição curta:**  
+Aplicação Django de controle de estoque que permite cadastrar produtos, gerenciar entradas (compras), saídas (vendas) e acompanhar o saldo de estoque. Ideal como portfólio funcional e bem estruturado.
+
+---
+
+##  Tecnologias utilizadas
+- **Python 3.x**  
+- **Django**  
+- **SQLite**  
+- **Django REST Framework** (para APIs internas, se aplicável)  
+- **Bootstrap / Tailwind / HTMX** 
+
+---
+
+##  Funcionalidades principais
+- Cadastro de produtos com unidades de medida  
+- Registro de compras e vendas com cálculo automático de total (quantidade × preço)  
+- Atualização em tempo real do saldo de estoque após cada operação
+- Consulta histórica de inventário com filtros por produto, data, etc.  
+- (Opcional) API REST para integração com outros sistemas
+
+---
+
+##  Como executar localmente
+
+```bash
+# Clone o repositório
+git clone https://github.com/seu-usuario/seu-repo.git
+cd seu-repo
+
+# Crie ambiente virtual
+python -m venv venv
+source venv/bin/activate  # Unix/macOS
+venv\Scripts\activate     # Windows
+
+# Instale dependências
+pip install -r requirements.txt
+
+# Aplique migrações
+python manage.py migrate
+
+# Crie usuário admin (opcional)
+python manage.py createsuperuser
+
+# Rode o servidor de desenvolvimento
+python manage.py runserver
+
+# Acesse em: http://127.0.0.1:8000/
