@@ -1,0 +1,39 @@
+@page {
+  size: A4;
+  margin: 2cm;
+}
+
+body {
+  font-family: sans-serif;
+  margin: 0;
+}
+
+.tabela-itens {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.tabela-itens th,
+.tabela-itens td {
+  border: 1px solid #333;
+  padding: 8px 12px;
+  text-align: center;
+}
+
+.tabela-itens thead th {
+  background-color: #f0f0f0;
+  font-weight: bold;
+}
+
+.tabela-itens tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.total-final {
+  margin-top: 16px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  text-align: right;
+  color: #006064;
+}

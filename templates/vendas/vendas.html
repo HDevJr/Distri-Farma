@@ -1,0 +1,138 @@
+{% extends 'core/base.html' %}
+{% block title %}Vendas - DistriFarma{% endblock %}
+{% load l10n %}
+{% load format_filters %}
+
+{% block content %}
+<h2 class="text-ciano fw-bold mb-4 titulo-centralizado">Histórico de Vendas</h2>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <a href="{% url 'venda_add' %}" class="btn btn-success">Nova Venda</a>
+  <form method="get" action="{% url 'venda_list' %}" class="search-fixed-form">
+    <input type="text" name="q" placeholder="Buscar por nome ou ID" class="search-fixed-input" autocomplete="off"/>
+  </form>
+</div>
+
+<table class="table table-striped table-bordered align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>ID</th>
+      <th>Cliente</th>
+      <th>Data</th>
+      <th>Total</th>
+      <th>Ações</th>
+    </tr>
+  </thead>
+
+  <tbody id="tabela-vendas">
+    {% for venda in page_obj %}
+      <tr data-row-id="{{ venda.id }}">
+        <td>
+          <a href="{% url 'venda_detail' venda.pk %}"
+             class="js-toggle-details link-primary text-decoration-none fw-semibold"
+             data-url="{% url 'venda_detail' venda.pk %}"
+             title="Ver detalhes">
+            {{ venda.id }}
+          </a>
+        </td>
+        <td>{{ venda.cliente.nome }}</td>
+        <td>{{ venda.data|date:"d/m/Y" }}</td>
+        <td>R$ {{ venda.total|floatformat:2 }}</td>
+        <td>
+          <button type="button" class="btn btn-sm action-editar"onclick="location.href='{% url 'venda_edit' venda.pk %}'" title="Editar">
+            <i class="fa-solid fa-pen"></i>
+          </button>
+          <button type="button" class="btn btn-sm action-excluir"onclick="location.href='{% url 'venda_delete' venda.pk %}'" title="Excluir">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+          <button type="button" class="btn btn-sm btn-danger"onclick="location.href='{% url 'venda_pdf' venda.pk %}'" title="Baixar PDF">
+            <i class="fa-solid fa-file-pdf"></i>
+          </button>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-center text-secondary">Nenhuma venda encontrada.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="d-flex justify-content-center mt-4">
+  <nav>
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a></li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">&laquo;</span></li>
+      {% endif %}
+
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+        {% elif forloop.first or forloop.last %}
+          <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+        {% elif forloop.counter == page_obj.number|add:'-3' or forloop.counter == page_obj.number|add:'3' %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if page_obj.has_next %}
+        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a></li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">&raquo;</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+{% endblock %}
+
+{% block content_scripts %}
+<script>
+document.addEventListener('click', async function (e) {
+  const link = e.target.closest('.js-toggle-details');
+  if (!link) return;
+
+  e.preventDefault(); // impede a navegação
+
+  const tr = link.closest('tr');
+  const vendaId = tr.getAttribute('data-row-id');
+  const url = link.getAttribute('data-url');
+
+  // Se a próxima linha já é o detalhe desta venda, colapsa
+  const next = tr.nextElementSibling;
+  if (next && next.classList.contains('venda-details') && next.dataset.forId === vendaId) {
+    next.remove();
+    return;
+  }
+
+  // Fecha outros detalhes abertos (opcional)
+  document.querySelectorAll('.venda-details').forEach(el => el.remove());
+
+  // Cria linha de detalhe "carregando"
+  const detailsTr = document.createElement('tr');
+  detailsTr.className = 'venda-details';
+  detailsTr.dataset.forId = vendaId;
+
+  const detailsTd = document.createElement('td');
+  detailsTd.colSpan = 5; // número de colunas da sua tabela
+  detailsTd.innerHTML = '<div class="text-muted py-3 px-2">Carregando…</div>';
+
+  detailsTr.appendChild(detailsTd);
+  tr.parentNode.insertBefore(detailsTr, tr.nextElementSibling);
+
+  try {
+    const resp = await fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+    if (!resp.ok) throw new Error('Falha ao carregar');
+    const html = await resp.text();
+    detailsTd.innerHTML = html;
+  } catch (err) {
+    detailsTd.innerHTML = '<div class="alert alert-danger mb-0">Não foi possível carregar os detalhes.</div>';
+  }
+});
+</script>
+<style>
+/* opcional, só para destacar a linha de detalhes */
+.venda-details > td { background: rgba(0,0,0,0.03); border-top: none !important; }
+</style>
+{% endblock %}

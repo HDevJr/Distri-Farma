@@ -1,0 +1,205 @@
+{% extends 'core/base.html' %}
+{% load widget_tweaks %}
+{% load l10n %}
+{% block title %}{{ titulo }} - DistriFarma{% endblock %}
+
+{% block content %}
+<div class="caixa-glass">
+  <h2 class="titulo-centralizado text-ciano fw-bold mb-4">{{ titulo }}</h2>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {% for field in form.visible_fields %}
+      <div class="form-linha mb-3 d-flex align-items-center">
+        {% if field.name == "cliente" %}
+          <label class="form-label mb-0 p-0" for="{{ field.id_for_label }}" style="width:auto; min-width:0; margin-right:0;">
+            {{ field.label }}
+          </label>
+          {{ field|add_class:"form-select campo-cliente-colado" }}
+          {% if field.errors %}
+            <div class="text-danger small ms-2">{{ field.errors }}</div>
+          {% endif %}
+        {% else %}
+          <label class="form-label mb-0 me-3" for="{{ field.id_for_label }}" style="width: 160px;">
+            {{ field.label }}
+          </label>
+          <div class="flex-grow-1">
+            {{ field|add_class:"form-control" }}
+            {% if field.errors %}
+              <div class="text-danger small">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <h4 class="mt-4 mb-2 text-ciano">Itens do Orçamento</h4>
+
+    {{ formset.management_form }}
+
+    {% if formset.non_form_errors %}
+      <div class="alert alert-danger">
+        {% for error in formset.non_form_errors %}
+          <p>{{ error }}</p>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <template id="empty-form-template">
+      <tr class="item-row">
+        <td>
+          {% for h in formset.empty_form.hidden_fields %}{{ h }}{% endfor %}
+          {{ formset.empty_form.produto|add_class:"form-select" }}
+        </td>
+        <td>{{ formset.empty_form.quantidade|add_class:"form-control" }}</td>
+        <td>{{ formset.empty_form.valor_unitario|add_class:"form-control" }}</td>
+        <td class="text-center">{{ formset.empty_form.desconto_aplicado }}</td>
+        <td class="text-end"><span class="total-item">R$ 0,00</span></td>
+        <td>
+          {{ formset.empty_form.DELETE|add_class:"d-none" }}
+          <button type="button" class="btn add-row" title="Adicionar linha"><i class="fa fa-plus"></i></button>
+          <button type="button" class="btn remove-row" title="Remover linha"><i class="fa fa-minus"></i></button>
+        </td>
+      </tr>
+    </template>
+
+    <table class="table table-glass align-middle mb-2">
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Quantidade</th>
+          <th>Valor Unitário</th>
+          <th>Desc. 5%</th>
+          <th>Total</th>
+          <th class="text-center">Adicionar/Excluir</th>
+        </tr>
+      </thead>
+      <tbody id="itens-tbody">
+      {% for f in formset %}
+        <tr class="item-row">
+          <td>
+            {% for h in f.hidden_fields %}{{ h }}{% endfor %}
+            {{ f.produto|add_class:"form-select" }}
+            {% if f.errors.produto %}
+              <div class="text-danger small">
+                {{ f.errors.produto.as_text|linebreaksbr }}
+              </div>
+            {% endif %}
+          </td>
+          <td>
+            {{ f.quantidade|add_class:"form-control" }}
+            {% if f.errors.quantidade %}
+              <div class="text-danger small">
+                {{ f.errors.quantidade.as_text|linebreaksbr }}
+              </div>
+            {% endif %}
+          </td>
+          <td>
+            {{ f.valor_unitario|add_class:"form-control" }}
+            {% if f.errors.valor_unitario %}
+              <div class="text-danger small">
+                {{ f.errors.valor_unitario.as_text|linebreaksbr }}
+              </div>
+            {% endif %}
+          </td>
+          <td class="text-center">{{ f.desconto_aplicado }}</td>
+          <td class="text-end"><span class="total-item">R$ 0,00</span></td>
+          <td>
+            {{ f.DELETE|add_class:"d-none" }}
+            <button type="button" class="btn add-row" title="Adicionar linha"><i class="fa fa-plus"></i></button>
+            <button type="button" class="btn remove-row" title="Remover linha"><i class="fa fa-minus"></i></button>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4" class="text-end fw-bold">Total Geral:</td>
+          <td class="text-end fw-bold" id="total-geral">R$ 0,00</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="d-flex justify-content-center mt-4 gap-2">
+      <button type="submit" class="custom-btn">Realizar Orçamento</button>
+      <a href="{% url 'orcamento_list' %}" class="custom-btn-cancelar">Cancelar</a>
+    </div>
+  </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+function formatBR(n){return n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+function calcRow($tr){
+  const q=parseFloat($tr.find('input[name$="-quantidade"]').val())||0;
+  const v=parseFloat($tr.find('input[name$="-valor_unitario"]').val())||0;
+  const d=$tr.find('input[name$="-desconto_aplicado"]').is(':checked');
+  let t=q*v; if(d) t*=0.95;
+  $tr.find('.total-item').text(formatBR(t));
+}
+function total(){
+  let s=0;
+  $('#itens-tbody tr:visible').each(function(){
+    const $r=$(this);
+    const q=parseFloat($r.find('input[name$="-quantidade"]').val())||0;
+    const v=parseFloat($r.find('input[name$="-valor_unitario"]').val())||0;
+    const d=$r.find('input[name$="-desconto_aplicado"]').is(':checked');
+    let t=q*v; if(d) t*=0.95; s+=t;
+  });
+  $('#total-geral').text(formatBR(s));
+}
+
+// AJAX valor unitário ao escolher produto (delegado funciona para linhas novas)
+$(document).on('change','select[name$="-produto"]',function(){
+  const $tr=$(this).closest('tr'); const id=$(this).val();
+  if(id){
+    $.get("/produtos/valor-unitario/",{produto_id:id},function(data){
+      if(data && data.valor_unitario!==undefined){
+        $tr.find('input[name$="-valor_unitario"]').val(parseFloat(data.valor_unitario).toFixed(2));
+        calcRow($tr); total();
+      }
+    });
+  }
+});
+
+// Recalcula totais
+$(document).on('input change','input[name$="-quantidade"], input[name$="-valor_unitario"], input[name$="-desconto_aplicado"]',function(){
+  const $tr=$(this).closest('tr'); calcRow($tr); total();
+});
+
+// Inicial
+$(function(){ $('#itens-tbody tr').each(function(){calcRow($(this))}); total(); });
+
+// Adiciona linha via <template> e atualiza TOTAL_FORMS do prefixo 'itens'
+$(document).on('click','.add-row',function(){
+  const $tbody = $('#itens-tbody');
+  let $totalForms = $('#id_itens-TOTAL_FORMS');
+  if(!$totalForms.length){ $totalForms = $('input[name="itens-TOTAL_FORMS"]'); }
+  const count = parseInt($totalForms.val(),10) || 0;
+
+  const tpl = document.getElementById('empty-form-template');
+  let rowHtml = tpl.innerHTML.replace(/__prefix__/g, count);
+  $tbody.append(rowHtml);
+  $totalForms.val(count + 1);
+
+  const $newTr = $tbody.find('tr').last();
+  $newTr.find('input[type="checkbox"][name$="-DELETE"]').prop('checked',false);
+  $newTr.find('.total-item').text('R$ 0,00');
+});
+
+// Marca DELETE e esconde a linha (mantém pelo menos 1 visível)
+$(document).on('click','.remove-row',function(){
+  const $tr=$(this).closest('tr');
+  const $chk=$tr.find('input[name$="-DELETE"]');
+  if($('#itens-tbody tr:visible').length>1){
+    $chk.prop('checked',true).val('on');
+    $tr.hide();
+    total();
+  }else{
+    alert("O orçamento deve ter pelo menos um item.");
+  }
+});
+</script>
+{% endblock %}

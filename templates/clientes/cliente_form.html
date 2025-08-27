@@ -1,0 +1,128 @@
+{% extends 'core/base.html' %}
+{% block title %}{{ titulo }} DistriFarma{% endblock %}
+
+{% block content %}
+<div class="caixa-glass">
+  <h2 class="text-ciano fw-bold mb-4 text-center">{{ titulo }}</h2>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <!-- Nome -->
+    <div class="form-linha">
+      <label class="form-label">{{ form.nome.label }}</label>
+      <div class="campo-direita">
+        {{ form.nome }}
+        {% if form.nome.errors %}<div class="text-danger small">{{ form.nome.errors }}</div>{% endif %}
+      </div>
+    </div>
+    <!-- Telefone -->
+    <div class="form-linha">
+      <label class="form-label">{{ form.telefone.label }}</label>
+      <div class="campo-direita">
+        {{ form.telefone }}
+        {% if form.telefone.errors %}<div class="text-danger small">{{ form.telefone.errors }}</div>{% endif %}
+      </div>
+    </div>
+    <!-- Documento -->
+    <div class="form-linha">
+      <label class="form-label">Documento</label>
+      <div class="campo-direita">
+        <div class="d-flex align-items-center mb-2">
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="tipo_documento" id="cpfRadio" value="cpf">
+            <label class="form-check-label" for="cpfRadio">CPF</label>
+          </div>
+          <div class="form-check form-check-inline">
+            <input class="form-check-input" type="radio" name="tipo_documento" id="cnpjRadio" value="cnpj">
+            <label class="form-check-label" for="cnpjRadio">CNPJ</label>
+          </div>
+        </div>
+        <input type="text" name="documento" id="id_documento"
+               class="form-control mt-2"
+               value="{{ form.instance.documento_formatado }}"
+               maxlength="18" required>
+        {% if form.documento.errors %}
+          <div class="text-danger small">{{ form.documento.errors }}</div>
+        {% endif %}
+      </div>
+    </div>
+    <!-- Email -->
+    <div class="form-linha">
+      <label class="form-label">{{ form.email.label }}</label>
+      <div class="campo-direita">
+        {{ form.email }}
+        {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+      </div>
+    </div>
+    <!-- Descrição -->
+    <div class="form-linha">
+      <label class="form-label">Descrição</label>
+      <div class="campo-direita">
+        {{ form.descricao }}
+        {% if form.descricao.errors %}<div class="text-danger small">{{ form.descricao.errors }}</div>{% endif %}
+      </div>
+    </div>
+
+    <!-- Botões estilizados -->
+    <div class="d-flex justify-content-center mt-4">
+      <button type="submit" class="custom-btn">Salvar</button>
+      <button type="button" class="custom-btn-cancelar"onclick="location.href='{% url 'cliente_list' %}'">Cancelar</button>
+    </div>
+  </form>
+</div>
+
+<!-- JS: jQuery + Mask + lógica CPF/CNPJ -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script>
+  $(function(){
+    $('#id_telefone').mask('(00) 0000-0000');
+
+    const $doc = $('#id_documento');
+    const $tipo = $('input[name="tipo_documento"]');
+
+    function mascara(tipo){
+      $doc.unmask();
+      tipo === 'cnpj'
+        ? $doc.mask('00.000.000/0000-00')
+        : $doc.mask('000.000.000-00');
+    }
+
+    function detectaTipo(valor){
+      return valor.replace(/\D/g,'').length > 11 ? 'cnpj':'cpf';
+    }
+
+    // Preenche radio e máscara ao editar
+    const valIni = $doc.val();
+    if(valIni){
+      const tipoIni = detectaTipo(valIni);
+      $tipo.filter('[value="'+tipoIni+'"]').prop('checked', true);
+      mascara(tipoIni);
+    } else {
+      mascara($tipo.filter(':checked').val());
+    }
+
+    $tipo.change(function(){
+      mascara(this.value);
+      $doc.val('');
+    });
+
+    $('form').submit(function(){
+      $doc.val($doc.val().replace(/\D/g,''));
+    });
+
+    // Validação visual
+    $doc.blur(function(){
+      const v = $(this).val().replace(/\D/g,'');
+      let ok = false;
+      if(v.length===11||v.length===14){
+        ok = true; // ou valide dígitos adicionais se desejar
+      }
+      $('.documento-erro').remove();
+      if(!ok){
+        $(this).closest('.form-linha')
+          .append('<div class="documento-erro text-danger small">CPF ou CNPJ inválido.</div>');
+      }
+    });
+  });
+</script>
+{% endblock %}

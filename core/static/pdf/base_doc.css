@@ -1,0 +1,96 @@
+    @page {
+      size: A4;
+      margin: 2cm;
+    }
+
+    body {
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 12px;
+      color: #111;
+      margin: 0;
+    }
+
+    /* Caixa do cabeçalho */
+    .doc-header {
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 12px 16px;
+      background: #f9f9f9;
+      margin-bottom: 20px;
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between; /* logo left, título/data right */
+      margin-bottom: 10px;
+    }
+
+    .logo-box img {
+      max-height: 95px;
+    }
+
+    .doc-title {
+      text-align: right;
+    }
+
+    .doc-title h2 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: bold;
+      color: #0c454d;
+    }
+
+    .doc-meta {
+      font-size: 12px;
+      color: #444;
+      margin-top: 4px;
+    }
+
+    .cliente-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .cliente-descricao .descricao-texto {
+      border: 1px solid #ccc;
+      padding: 4px;
+      min-height: 40px;
+      font-size: 11px;
+      margin-top: 2px;
+    }
+
+    .spacer {
+      height: 30px;
+    }
+
+    /* Tabela de itens */
+    .tabela-itens {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .tabela-itens th,
+    .tabela-itens td {
+      border: 1px solid #333;
+      padding: 6px 8px;
+      font-size: 12px;
+    }
+
+    .tabela-itens thead th {
+      background: #f5f7fb;
+      font-weight: bold;
+      color: #0c454d;
+    }
+
+    .tabela-itens tbody tr:nth-child(even) {
+      background-color: #fafafa;
+    }
+
+    .tabela-itens tfoot td {
+      font-weight: bold;
+      background: #f0f0f0;
+    }

@@ -1,0 +1,112 @@
+{% extends 'core/base.html' %}
+{% block title %}Produtos - DistriFarma{% endblock %}
+
+{% block content %}
+<h2 class="titulo-centralizado text-ciano fw-bold mb-4">Lista de Produtos</h2>
+
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  {% if perms.produtos.add_produto %}
+    <a href="{% url 'produto_add' %}" class="btn btn-success">Novo Produto</a>
+  {% endif %}
+
+  <form method="get" action="{% url 'produto_list' %}" class="search-fixed-form">
+    <input
+      type="text"
+      name="q"
+      placeholder="Buscar por nome ou ID"
+      class="search-fixed-input"
+      autocomplete="off"/>
+  </form>
+</div>
+
+<table class="table table-striped table-bordered align-middle">
+  <thead class="table-light">
+    <tr>
+      <th>ID</th>
+      <th>Nome</th>
+      <th>Descrição</th>
+      <th>EAN</th>
+      <th>Valor Unitário</th>
+      <th>Estoque</th>
+      <th>Editar/Excluir</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% if page_obj %}
+    {% for produto in page_obj %}
+    <tr>
+      <td>{{ produto.produto_id }}</td>
+      <td>{{ produto.nome }}</td>
+      <td data-fulltext="{{ produto.descricao|default_if_none:'Sem descrição' }}">{{ produto.descricao|default:'Sem descrição' }}</td>
+      <td>{{ produto.ean }}</td>
+      <td>R$ {{ produto.valor_unitario }}</td>
+      <td>{{ produto.quantidade_estoque }}</td>
+      <td>
+        {% if perms.produtos.change_produto %}
+        <button type="button" class="btn btn-sm action-editar"onclick="location.href='{% url 'produto_edit' produto.pk %}'">
+          <i class="fa-solid fa-pen"></i>
+        </button>
+        {% endif %}
+        {% if perms.produtos.delete_produto %}
+        <button type="button" class="btn btn-sm action-excluir"onclick="location.href='{% url 'produto_delete' produto.pk %}'">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  {% else %}
+    <tr>
+      <td colspan="7" class="text-center text-secondary">
+        Nenhum produto encontrado.
+      </td>
+    </tr>
+  {% endif %}
+</tbody>
+
+</table>
+<div class="d-flex justify-content-center mt-4">
+  <nav>
+    <ul class="pagination">
+      {% if page_obj.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.previous_page_number }}">&laquo;</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&laquo;</span>
+        </li>
+      {% endif %}
+      {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+          <li class="page-item active">
+            <span class="page-link">{{ num }}</span>
+          </li>
+        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+          </li>
+        {% elif forloop.first or forloop.last %}
+          <li class="page-item">
+            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+          </li>
+        {% elif forloop.counter == page_obj.number|add:'-3' or forloop.counter == page_obj.number|add:'3' %}
+          <li class="page-item disabled">
+            <span class="page-link">…</span>
+          </li>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ page_obj.next_page_number }}">&raquo;</a>
+        </li>
+      {% else %}
+        <li class="page-item disabled">
+          <span class="page-link">&raquo;</span>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+</div>
+{% endblock %}

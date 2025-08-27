@@ -1,0 +1,36 @@
+<div class="mb-2 orcamento-info text-start">
+  <div><strong>ID:</strong> {{ orcamento.id }}</div>
+  <div><strong>Cliente:</strong> {{ orcamento.cliente.nome|default:orcamento.cliente }}</div>
+  <div><strong>Data:</strong> {{ orcamento.criado_em|date:"d/m/Y" }}</div>
+</div>
+
+<table class="table table-sm table-bordered align-middle mb-0 tabela-itens">
+  <thead class="thead-custom">
+    <tr>
+      <th>Produto</th>
+      <th class="text-end">Qtd</th>
+      <th class="text-end">Valor Unit.</th>
+      <th class="text-center">Desc. 5%</th>
+      <th class="text-end">Subtotal</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for it in itens %}
+      <tr>
+        <td>{{ it.produto.nome|default:it.produto }}</td>
+        <td class="text-end">{{ it.quantidade }}</td>
+        <td class="text-end">R$ {{ it.valor_unitario|floatformat:2 }}</td>
+        <td class="text-center">{% if it.desconto_aplicado %}Sim{% else %}Não{% endif %}</td>
+        <td class="text-end">R$ {{ it.subtotal|floatformat:2 }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5" class="text-center text-muted">Sem itens.</td></tr>
+    {% endfor %}
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" class="text-end fw-bold">Total:</td>
+      <td class="text-end fw-bold">R$ {{ total_geral|floatformat:2 }}</td>
+    </tr>
+  </tfoot>
+</table>

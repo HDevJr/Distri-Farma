@@ -1,0 +1,13 @@
+{% extends 'core/base.html' %}
+{% block title %}Excluir Venda - DistriFarma{% endblock %}
+
+{% block content %}
+<h2 class="text-danger fw-bold mb-4">Excluir Venda</h2>
+<p>Tem certeza que deseja excluir a venda do cliente <strong>{{ venda.cliente.nome }}</strong>?</p>
+
+<form method="post">
+  {% csrf_token %}
+  <button type="submit" class="custom-btn">Confirmar Exclusão</button>
+  <a href="{% url 'venda_list' %}" class="custom-btn-cancelar">Cancelar</a>
+</form>
+{% endblock %}

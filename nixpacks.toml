@@ -1,0 +1,24 @@
+providers = ["python"]
+
+[phases.setup]
+aptPkgs = [
+  "pkg-config",
+  "python3-dev",
+  "default-libmysqlclient-dev",
+  "libmariadb3",
+  "build-essential",
+  "libcairo2-dev",
+  "libpango1.0-dev",
+  "libpango-1.0-0",
+  "libgdk-pixbuf2.0-dev",        # header GDK‑Pixbuf
+  "libgdk-pixbuf2.0-0",          # runtime GDK‑Pixbuf
+  "libffi-dev",
+  "shared-mime-info",
+  "libglib2.0-0",                # runtime GLib
+  "libgobject-2.0-0",            # runtime GObject
+  "gobject-introspection",
+  "libgirepository1.0-dev",      # dev para GObject introspection
+  "gir1.2-pango-1.0",            # introspection Pango
+  "libssl-dev",                  # se seu código usar TLS
+  "libharfbuzz-dev"              # se der erro relacionado a “harfbuzz”
+]

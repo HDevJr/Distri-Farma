@@ -1,0 +1,241 @@
+{% extends 'core/base.html' %}
+{% load l10n %}
+{% block title %}{{ titulo }} - DistriFarma{% endblock %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="caixa-glass">
+  <h2 class="titulo-centralizado text-ciano fw-bold mb-4">{{ titulo }}</h2>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    {% for field in form.visible_fields %}
+      <div class="form-linha mb-3 d-flex align-items-center">
+        {% if field.name == "cliente" %}
+          <label class="form-label mb-0 p-0" for="{{ field.id_for_label }}" style="width:auto; min-width:0; margin-right:0;">
+            {{ field.label }}
+          </label>
+          {{ field|add_class:"form-select campo-cliente-colado" }}
+        {% else %}
+          <label class="form-label mb-0 me-3" for="{{ field.id_for_label }}" style="width: 160px;">{{ field.label }}</label>
+          <div class="flex-grow-1">
+            {{ field|add_class:"form-control" }}
+            {% if field.errors %}
+              <div class="text-danger small">{{ field.errors }}</div>
+            {% endif %}
+          </div>
+        {% endif %}
+        {% if field.name == "cliente" and field.errors %}
+          <div class="text-danger small ms-2">{{ field.errors }}</div>
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    <h4 class="mt-4 mb-2 text-ciano">Itens da Venda</h4>
+    {{ formset.management_form }}
+
+    <table class="table table-glass align-middle mb-2">
+      <thead>
+        <tr>
+          <th>Produto</th>
+          <th>Quantidade</th>
+          <th>Valor Unitário</th>
+          <th>Desc. 5%</th>
+          <th>Total</th>
+          <th class="text-center">Adicionar/Excluir</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for form in formset %}
+        <tr>
+          <td>
+            {% for hidden in form.hidden_fields %}{{ hidden }}{% endfor %}
+            {{ form.produto|add_class:"form-select" }}
+            {% if form.errors.produto %}
+              <div class="text-danger small">
+                {{ form.errors.produto.as_text|linebreaksbr }}
+              </div>
+            {% endif %}
+          </td>
+          <td>
+            {{ form.quantidade|add_class:"form-control" }}
+            {% if form.errors.quantidade %}
+              <div class="text-danger small">
+                {{ form.errors.quantidade.as_text|linebreaksbr }}
+              </div>
+            {% endif %}
+          </td>
+          <td>
+            {{ form.valor_unitario|add_class:"form-control" }}
+            {% if form.errors.valor_unitario %}
+              <div class="text-danger small">
+                {{ form.errors.valor_unitario.as_text|linebreaksbr }}
+              </div>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {{ form.desconto_aplicado }}
+          </td>
+          <td class="text-end">
+            <span class="total-item">R$ 0,00</span>
+          </td>
+          <td>
+            {{ form.DELETE|add_class:"d-none" }}
+            <button type="button" class="btn add-row" title="Adicionar linha"><i class="fa fa-plus"></i></button>
+            <button type="button" class="btn remove-row" title="Remover linha"><i class="fa fa-minus"></i></button>
+          </td>
+        </tr>
+      {% endfor %}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td colspan="4" class="text-end fw-bold">Total Geral:</td>
+          <td class="text-end fw-bold" id="total-geral">R$ 0,00</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+
+    <div class="d-flex justify-content-center mt-4">
+      <button type="submit" class="custom-btn">Salvar</button>
+      <a href="{% url 'venda_list' %}" class="custom-btn-cancelar">Cancelar</a>
+    </div>
+  </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  function atualizarIndices() {
+    let totalForms = $('#id_itens-TOTAL_FORMS');
+    let forms = $('tbody tr:visible');
+    totalForms.val(forms.length);
+
+    forms.each(function(index) {
+      $(this).find(':input').each(function () {
+        const name = $(this).attr('name');
+        if (name) {
+          const newName = name.replace(/itens-\d+-/, `itens-${index}-`);
+          $(this).attr('name', newName).attr('id', `id_${newName}`);
+        }
+      });
+
+      $(this).find('label').each(function () {
+        const labelFor = $(this).attr('for');
+        if (labelFor) {
+          const newFor = labelFor.replace(/itens-\d+-/, `itens-${index}-`);
+          $(this).attr('for', newFor);
+        }
+      });
+    });
+  }
+
+  function formatarMoeda(valor) {
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  }
+
+  function calcularTotalLinha(linha) {
+    const qtde = parseFloat(linha.find('input[name$="-quantidade"]').val()) || 0;
+    const unitario = parseFloat(linha.find('input[name$="-valor_unitario"]').val()) || 0;
+    const desconto = linha.find('input[name$="-desconto_aplicado"]').is(':checked');
+
+    let total = qtde * unitario;
+    if (desconto) total *= 0.95;
+
+    linha.find('.total-item').text(formatarMoeda(total));
+  }
+
+  function atualizarTodosTotais() {
+    $('tbody tr:visible').each(function () {
+      calcularTotalLinha($(this));
+    });
+  }
+
+  function atualizarTotalGeral() {
+    let totalGeral = 0;
+    $('tbody tr:visible').each(function () {
+      const qtde = parseFloat($(this).find('input[name$="-quantidade"]').val()) || 0;
+      const valor = parseFloat($(this).find('input[name$="-valor_unitario"]').val()) || 0;
+      const desconto = $(this).find('input[name$="-desconto_aplicado"]').is(':checked');
+
+      let total = qtde * valor;
+      if (desconto) total *= 0.95;
+
+      totalGeral += total;
+    });
+
+    $('#total-geral').text(formatarMoeda(totalGeral));
+  }
+
+  $(document).ready(function () {
+    atualizarTodosTotais();
+    atualizarTotalGeral();
+
+    $(document).on('click', '.add-row', function () {
+      const lastForm = $('tbody tr:last');
+      const newForm = lastForm.clone(false);
+
+      newForm.find('input, select').each(function () {
+        const tipo = $(this).attr('type');
+        if (tipo === 'checkbox') {
+          $(this).prop('checked', false);
+        } else if (tipo !== 'hidden') {
+          $(this).val('');
+        }
+      });
+
+    newForm.find('.total-item').text('R$ 0,00');
+    newForm.find('input[type=checkbox][name$="-DELETE"]').prop('checked', false);
+    newForm.show();
+    lastForm.after(newForm);
+
+    atualizarIndices();
+    atualizarTotalGeral();
+  });
+
+$(document).on('click', '.remove-row', function () {
+  const rows = $('tbody tr');
+  if (rows.length > 1) {
+    const row = $(this).closest('tr');
+    row.find('input[name$="-DELETE"]').prop('checked', true);
+    row.hide();
+    atualizarTotalGeral();
+  } else {
+    alert("A venda deve ter pelo menos um item.");
+  }
+});
+
+    $(document).on('change', 'select[name$="-produto"]', function () {
+      const produtoSelect = $(this);
+      const produtoId = produtoSelect.val();
+      const linha = produtoSelect.closest('tr');
+      const inputValorUnitario = linha.find('input[name$="-valor_unitario"]');
+
+      if (produtoId) {
+        $.ajax({
+          url: "/produtos/valor-unitario/",
+          data: { produto_id: produtoId },
+          success: function (data) {
+            if (data.valor_unitario !== undefined) {
+              inputValorUnitario.val(parseFloat(data.valor_unitario).toFixed(2));
+              calcularTotalLinha(linha);
+              atualizarTotalGeral();
+            } else {
+              alert("Erro: produto sem valor_unitario.");
+            }
+          },
+          error: function () {
+            alert("Erro ao buscar valor unitário.");
+          }
+        });
+      }
+    });
+
+    $(document).on('input change', 'input[name$="-quantidade"], input[name$="-valor_unitario"], input[name$="-desconto_aplicado"]', function () {
+      const linha = $(this).closest('tr');
+      calcularTotalLinha(linha);
+      atualizarTotalGeral();
+    });
+  });
+</script>
+
+{% endblock %}
