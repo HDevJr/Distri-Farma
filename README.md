@@ -1,6 +1,5 @@
 # Sistema de Controle de Estoque DistriFarma
 
-**Descrição curta:**  
 Aplicação Django de controle de estoque que permite cadastrar produtos, gerenciar entradas (compras), saídas (vendas) e acompanhar o saldo de estoque. Ideal como portfólio funcional e bem estruturado.
 
 ---
